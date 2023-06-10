@@ -1,0 +1,97 @@
+name: deploy main to EB
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: CI Pipeline
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: ['16.x']
+      
+      steps:
+        - uses: actions/checkout@v3
+
+        - name: Install Node.js ${{ matrix.node-version }}
+          uses: actions/setup-node@v3
+          with:
+            node-version: ${{ matrix.node-version }}
+
+        - name: Cache node modules
+          id: node-Cache
+          uses: actions/cache@v2
+          env:
+            cache-name: cache-node-modules
+          with:
+            path: node_modules
+            key: ${{runner.os}}-node-modules-${{ hashFiles('**/package-lock.json') }}
+            restore-keys: |
+              ${{ runner.os }}-node-modules-
+
+        - name: install dependencies
+          if: steps.node-cache.outputs.cache-hit != 'true'
+          run: npm install
+        - name: Run build
+          run: npm run build
+
+  deploy:
+    name: CD Pipeline
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: ['16.x']
+    needs: build
+    steps:
+      - uses: actions/checkout@v3
+      - name: Create env hashFiles
+        run: |
+          touch .env
+          echo PORT=8081 >> .env
+          echo NODE_ENV=${{ secrets.NODE_ENV }} >> .env
+          cat .env
+
+      - name: Install Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run build
+        run: npm run build
+
+      - name: Install AWS CLI 2
+        run: |
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip awscliv2.zip
+          which aws
+          sudo ./aws/install --bin-dir /user/local/bin --install-dir /usr/local/aws-cli --update
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_EB_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_EB_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Generate deployment package
+        run: zip -r coco-server.zip . -x '*.git*' './src/*' './aws/*' './node_modules' awscliv2.zip
+
+      - name: deploy main to EB
+        uses: einaregilsson/beanstalk-deploy@16
+        with:
+          aws_access_key: ${{ secres.AWS_EB_ACCESS_KEY_ID }}
+          aws_secret_key: ${{ secres.AWS_EB_SECRET_ACCESS_KEY }}
+          application_name: owens_eb
+          environment_name: Owenseb-env
+          region: ${{ secrets.AWS_REGION }}
+          version_label: ${{ github.SHA }}
+          deployment_package: coco-server.zip
+          use_existing_version_if_avaliable: true
