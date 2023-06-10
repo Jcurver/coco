@@ -1,0 +1,26 @@
+version: "1"
+services:
+  backend:
+    # container_name: story
+    image: story
+    build: 
+      dockerfile: Dockerfile
+      context: .
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: postgres://postgres:user@password:5432/board-app
+      NODE_ENV: development
+      PORT: 3000
+    ports:
+      - "3000:3000"
+  
+  postgres:
+    container_name: postgres
+    image: postgres:10.4
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: 'board-app'
