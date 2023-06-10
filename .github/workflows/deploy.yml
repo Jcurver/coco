@@ -14,30 +14,30 @@ jobs:
       matrix:
         node-version: ['16.x']
       
-      steps:
-        - uses: actions/checkout@v3
+    steps:
+      - uses: actions/checkout@v3
 
-        - name: Install Node.js ${{ matrix.node-version }}
-          uses: actions/setup-node@v3
-          with:
-            node-version: ${{ matrix.node-version }}
+      - name: Install Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
 
-        - name: Cache node modules
-          id: node-Cache
-          uses: actions/cache@v2
-          env:
-            cache-name: cache-node-modules
-          with:
-            path: node_modules
-            key: ${{runner.os}}-node-modules-${{ hashFiles('**/package-lock.json') }}
-            restore-keys: |
-              ${{ runner.os }}-node-modules-
+      - name: Cache node modules
+        id: node-Cache
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          path: node_modules
+          key: ${{runner.os}}-node-modules-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-modules-
 
-        - name: install dependencies
-          if: steps.node-cache.outputs.cache-hit != 'true'
-          run: npm install
-        - name: Run build
-          run: npm run build
+      - name: install dependencies
+        if: steps.node-cache.outputs.cache-hit != 'true'
+        run: npm install
+      - name: Run build
+        run: npm run build
 
   deploy:
     name: CD Pipeline
