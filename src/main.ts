@@ -9,9 +9,9 @@ async function bootstrap() {
 
   // const serverConfig = config.get('server');
 
-  const port = 5000;
+  const PORT = 5000;
 
-  await app.listen(port);
-  logger.log(`💡Application listening on port ${port}`);
+  await app.listen(PORT);
+  logger.log(`💡Application listening on port ${PORT}`);
 }
 bootstrap();
