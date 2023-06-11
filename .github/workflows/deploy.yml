@@ -94,4 +94,4 @@ jobs:
           region: ${{ secrets.AWS_REGION }}
           version_label: ${{ github.SHA }}
           deployment_package: coco-server.zip
-          use_existing_version_if_avaliable: true
+          use_existing_version_if_available: true
