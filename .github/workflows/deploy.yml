@@ -13,7 +13,7 @@ jobs:
     strategy:
       matrix:
         node-version: ['16.x']
-      
+
     steps:
       - uses: actions/checkout@v3
 
@@ -42,7 +42,7 @@ jobs:
   deploy:
     name: CD Pipeline
     runs-on: ubuntu-latest
-    
+
     strategy:
       matrix:
         node-version: ['16.x']
@@ -82,15 +82,15 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Generate deployment package
-        run: zip -r coco-server.zip . -x '*.git*' './src/*' './aws/*' './node_modules/*' awscliv2.zip
+        run: zip -r coco-server.zip . -x '*.git*' './src/*' './aws/*' './node_modules' awscliv2.zip
 
       - name: deploy main to EB
-        uses: einaregilsson/beanstalk-deploy@v16
+        uses: einaregilsson/beanstalk-deploy@16
         with:
-          aws_access_key: ${{ secrets.AWS_EB_ACCESS_KEY_ID }}
-          aws_secret_key: ${{ secrets.AWS_EB_SECRET_ACCESS_KEY }}
+          aws_access_key: ${{ secres.AWS_EB_ACCESS_KEY_ID }}
+          aws_secret_key: ${{ secres.AWS_EB_SECRET_ACCESS_KEY }}
           application_name: owens_eb
-          environment_name: Owenseb-env-1
+          environment_name: Owenseb-env
           region: ${{ secrets.AWS_REGION }}
           version_label: ${{ github.SHA }}
           deployment_package: coco-server.zip
