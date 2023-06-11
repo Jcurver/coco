@@ -24,7 +24,7 @@ import { Board } from './boards/board.entity';
       database: process.env.MYSQL_DATABASE,
       entities: [__dirname + 'dist/**/*.entity.{js,ts}', User, Board],
       // synchronize: dbConfig.synchronize,
-      synchronize: true,
+      synchronize: true, //
     }),
     BoardsModule,
     AuthModule,
