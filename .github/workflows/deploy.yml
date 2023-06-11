@@ -82,7 +82,7 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Generate deployment package
-        run: zip -r coco-server.zip . -x '*.git*' './src/*' './aws/*' './node_modules' awscliv2.zip
+        run: zip -r coco-server.zip . -x '*.git*' './src/*' './aws/*' './node_modules/*' awscliv2.zip
 
       - name: deploy main to EB
         uses: einaregilsson/beanstalk-deploy@v16
@@ -94,4 +94,4 @@ jobs:
           region: ${{ secrets.AWS_REGION }}
           version_label: ${{ github.SHA }}
           deployment_package: coco-server.zip
-          use_existing_version_if_avaliable: true
+          use_existing_version_if_available: true
