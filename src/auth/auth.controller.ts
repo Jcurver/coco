@@ -1,8 +1,10 @@
 import {
   Body,
   Controller,
+  Get,
   Post,
   Req,
+  Request,
   UseGuards,
   ValidationPipe,
 } from '@nestjs/common';
@@ -34,5 +36,20 @@ export class AuthController {
   @UseGuards(AuthGuard())
   authTest(@GetUser() user: User) {
     console.log(user);
+  }
+
+  @Get('apple')
+  @UseGuards(AuthGuard('apple'))
+  async appleLogin(@Request() req) {
+    // Apple 로그인을 시작하는 엔드포인트
+    return req.user;
+  }
+
+  @Get('apple/callback')
+  @UseGuards(AuthGuard('apple'))
+  async appleLoginCallback(@Request() req) {
+    // Apple 로그인 후 callback되는 엔드포인트
+    // 사용자 정보는 req.user 에 저장됩니다.
+    return req.user;
   }
 }

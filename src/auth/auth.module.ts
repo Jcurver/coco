@@ -7,6 +7,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './jwt.strategy';
 import { PassportModule } from '@nestjs/passport';
 import * as config from 'config';
+import { AppleStrategy } from './apple.strategy';
 
 const jwtConfig = config.get('jwt');
 
@@ -20,9 +21,10 @@ const jwtConfig = config.get('jwt');
       },
     }),
     TypeOrmModule.forFeature([UserRepository]),
+    PassportModule,
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
+  providers: [AuthService, JwtStrategy, AppleStrategy],
   exports: [JwtStrategy, PassportModule],
 })
 export class AuthModule {}
