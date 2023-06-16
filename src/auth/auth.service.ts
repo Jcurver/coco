@@ -121,4 +121,15 @@ export class AuthService {
       isSignup,
     };
   }
+
+  async withdrawalFromUser(username: string) {
+    console.log('userNAME', username);
+    const user = await this.userService.findOne({ where: { username } });
+    console.log(user);
+    if (!user) {
+      throw new HttpException('Invalid token', HttpStatus.UNAUTHORIZED);
+    }
+    await this.userService.deleteUser(user);
+    return user;
+  }
 }

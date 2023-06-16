@@ -2,10 +2,12 @@ import { UserEntity } from 'src/user/entities/user.entity';
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpException,
   HttpStatus,
   Post,
+  Query,
   Req,
   Request,
   Res,
@@ -20,6 +22,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { GetUser } from './get-user.decorator';
 import { AppleUserDto } from 'src/user/dto/apple-user.dto';
 import { ResponseBody } from 'src/common/utils/response';
+import { IsEmail } from 'class-validator';
 
 @Controller('auth')
 export class AuthController {
@@ -62,11 +65,7 @@ export class AuthController {
 
   // @SerializeOptions({ groups: ['private'] })
   @Post('apple')
-  async authByApple(
-    @Body() appleUserDto: AppleUserDto,
-    @Req() req: Request,
-    @Res() res,
-  ) {
+  async authByApple(@Body() appleUserDto: AppleUserDto, @Res() res) {
     const { user, accessToken, error, isSignup } =
       await this.authService.authWithApple(appleUserDto);
     console.log('acc', accessToken);
@@ -84,5 +83,11 @@ export class AuthController {
   @Get('me')
   public async me(user: UserEntity) {
     return ResponseBody({ user });
+  }
+
+  @Delete('withdrawal')
+  async withdrawalFromUser(@Query('username') username) {
+    console.log('body', username);
+    return this.authService.withdrawalFromUser(username);
   }
 }

@@ -2,6 +2,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { UserEntity } from './entities/user.entity';
 import { getManager } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UserRepository } from './user.repository';
 
 @Injectable()
 export class UserService {
@@ -43,9 +44,7 @@ export class UserService {
             HttpStatus.CONFLICT,
           );
         }
-        console.log('appleUserID', appleUserId);
         // Create User
-
         const user = transactionalEntityManager.create(UserEntity, {
           username,
           password,
@@ -61,7 +60,6 @@ export class UserService {
         newUser = await transactionalEntityManager.save(user);
       },
     );
-    console.log('hihi22');
     // const event = new UserCreatedEvent();
     // event.user = newUser;
     // this.eventEmitter.emit(UserCreatedEvent.Key, event);
@@ -76,5 +74,40 @@ export class UserService {
   }
   async me(user: UserEntity): Promise<UserEntity> {
     return user;
+  }
+  async deleteUser(user: UserEntity): Promise<void> {
+    const { id } = user;
+    console.log('delete success1');
+
+    // await UserEntity.delete(user.id);
+    console.log('delete success2');
+
+    await getManager().transaction(
+      'READ COMMITTED',
+      async (transactionalEntityManager) => {
+        // check if the user exists in the db
+        try {
+          const userInDb = await transactionalEntityManager.findOne(
+            UserEntity,
+            {
+              where: { id },
+            },
+          );
+          if (!userInDb) {
+            throw new HttpException(
+              `Invalid UserId '${id}'`,
+              HttpStatus.CONFLICT,
+            );
+          }
+          //  delete User
+          await transactionalEntityManager.delete(UserEntity, { id });
+          console.log('delete success');
+        } catch (e) {
+          console.log('ERR', e);
+        }
+
+        // newUser = await transactionalEntityManager.save(user);
+      },
+    );
   }
 }

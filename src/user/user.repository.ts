@@ -27,4 +27,7 @@ export class UserRepository extends Repository<UserEntity> {
       throw new InternalServerErrorException();
     }
   }
+  async deleteUser(id: number): Promise<void> {
+    await this.delete({ id });
+  }
 }
