@@ -1,34 +1,124 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { UserRepository } from './user.repository';
+import { UserService } from '../user/user.service';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  Logger,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { UserRepository } from '../user/user.repository';
 import { InjectRepository } from '@nestjs/typeorm';
 import { AuthCredentialsDto } from './dto/auth-credential.dto';
 import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
+import { AppleUserDto } from 'src/user/dto/apple-user.dto';
+import { JwtPayload } from './jwt.strategy';
+import { UserEntity } from 'src/user/entities/user.entity';
+import { Repository } from 'typeorm';
+// import appleSignin from 'apple-signin-auth';
 
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectRepository(UserRepository)
-    private userRepository: UserRepository,
+    // @InjectRepository(UserEntity)
+    // private userRepository: UserRepository,
     private JwtService: JwtService,
+    private readonly userService: UserService,
   ) {}
 
-  async signUp(authCredentialsDto: AuthCredentialsDto): Promise<void> {
-    return this.userRepository.createUser(authCredentialsDto);
+  // async signUp(authCredentialsDto: AuthCredentialsDto): Promise<void> {
+  //   return this.userRepository.createUser(authCredentialsDto);
+  // }
+
+  // async signIn(
+  //   authCredentialsDto: AuthCredentialsDto,
+  // ): Promise<{ accessToken: string }> {
+  //   const { username, password } = authCredentialsDto;
+  //   const user = await this.userRepository.findOne({ username });
+
+  //   if (user && (await bcrypt.compare(password, user.password))) {
+  //     const payload = { username };
+  //     const accessToken = await this.JwtService.sign(payload);
+  //     return { accessToken };
+  //   } else {
+  //     throw new UnauthorizedException('login failed');
+  //   }
+  // }
+
+  // private async verifyAppleIdToken(token: string) {
+  //   try {
+  //     const { sub: userAppleId } = await appleSignin.verifyIdToken(token, {
+  //       // Optional Options for further verification - Full list can be found here https://github.com/auth0/node-jsonwebtoken#jwtverifytoken-secretorpublickey-options-callback
+  //       audience: process.env.APPLE_CLIENT_ID, // client id - can also be an array
+  //       ignoreExpiration: true, // default is false
+  //     });
+
+  //     Logger.log('apple id token verified :', userAppleId);
+
+  //     return userAppleId;
+  //   } catch (err) {
+  //     // Token is not verified
+  //     Logger.error(err);
+  //     return false;
+  //   }
+  // }
+  private _createAccessToken({ username }: UserEntity): any {
+    const user: JwtPayload = { username };
+    console.log('user', user);
+
+    const accessToken = this.JwtService.sign(user);
+    return {
+      expiresIn: process.env.EXPIRESIN,
+      accessToken,
+    };
   }
 
-  async signIn(
-    authCredentialsDto: AuthCredentialsDto,
-  ): Promise<{ accessToken: string }> {
-    const { username, password } = authCredentialsDto;
-    const user = await this.userRepository.findOne({ username });
-
-    if (user && (await bcrypt.compare(password, user.password))) {
-      const payload = { username };
-      const accessToken = await this.JwtService.sign(payload);
-      return { accessToken };
-    } else {
-      throw new UnauthorizedException('login failed');
+  async validateUser(payload: JwtPayload): Promise<UserEntity> {
+    const user = await this.userService.findByPayload(payload);
+    if (!user) {
+      throw new HttpException('Invalid token', HttpStatus.UNAUTHORIZED);
     }
+    return user;
+  }
+
+  async authWithApple(appleUserDto: AppleUserDto) {
+    const { appleUserId, username } = appleUserDto;
+    let user = await this.userService.findOne({
+      where: { appleUserId, username },
+    });
+
+    let error;
+    let token = { accessToken: '' };
+    let isSignup = false;
+    if (!user) {
+      isSignup = true;
+      try {
+        console.log('hihi');
+        user = await this.userService.create(appleUserDto);
+        console.log('user', user);
+        token = this._createAccessToken(user);
+      } catch (err: any) {
+        if (err.status === HttpStatus.CONFLICT) {
+          error = {
+            code: 409,
+            message: 'User already signed up with Email',
+          };
+        }
+      }
+    } else {
+      token = this._createAccessToken(user);
+      // this._linkToDog(appleUserDto.uuid, user.id);
+    }
+
+    if (!error) {
+      // await this._issueSendbirdTokenIfNotExist(user);
+    }
+
+    return {
+      user,
+      ...token,
+      error,
+      isSignup,
+    };
   }
 }

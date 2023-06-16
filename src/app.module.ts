@@ -1,15 +1,16 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { typeOrmConfig } from './configs/typeorm.config';
-import { BoardsController } from './boards/boards.controller';
-import { BoardsService } from './boards/boards.service';
-import { BoardsModule } from './boards/boards.module';
 import { AuthModule } from './auth/auth.module';
 import { ConfigModule } from '@nestjs/config';
-import { User } from './auth/user.entity';
-import { Board } from './boards/board.entity';
+import { UserEntity } from './user/entities/user.entity';
+import { UserModule } from './user/user.module';
+import {
+  AuthenticationMiddleware,
+  ignoreAuthenticationPaths,
+} from './middleware/authentication.middleware';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
+// const IS_DEV = process.env.NODE_ENV === 'development';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -24,12 +25,25 @@ const IS_DEV = process.env.NODE_ENV === 'development';
       password:
         process.env.MYSQL_ROOT_PASSWORD || process.env.DEV_MYSQL_ROOT_PASSWORD,
       database: process.env.MYSQL_DATABASE || process.env.DEV_MYSQL_DATABASE,
-      entities: [__dirname + 'dist/**/*.entity.{js,ts}', User, Board],
+      entities: [__dirname + 'dist/**/*.entity.{js,ts}', UserEntity],
       // synchronize: dbConfig.synchronize,
-      synchronize: IS_DEV, //
+      // synchronize: IS_DEV, //
+      synchronize: true,
     }),
-    BoardsModule,
     AuthModule,
+    UserModule,
   ],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(AuthenticationMiddleware)
+      .exclude(
+        ...Array.from(ignoreAuthenticationPaths, (path) => ({
+          path,
+          method: RequestMethod.ALL,
+        })),
+      )
+      .forRoutes('*');
+  }
+}

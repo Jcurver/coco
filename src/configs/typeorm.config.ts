@@ -1,6 +1,6 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
-import { Board } from 'src/boards/board.entity';
 import * as config from '@nestjs/config';
+import { UserEntity } from 'src/user/entities/user.entity';
 
 // const dbConfig = config.get('db');
 
