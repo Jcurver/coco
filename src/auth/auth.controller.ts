@@ -23,6 +23,7 @@ import { GetUser } from './get-user.decorator';
 import { AppleUserDto } from 'src/user/dto/apple-user.dto';
 import { ResponseBody } from 'src/common/utils/response';
 import { IsEmail } from 'class-validator';
+import { GoogleUserDto } from 'src/user/dto/google-user.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -78,6 +79,19 @@ export class AuthController {
     }
     // res.header('Authorization', `Bearer ${accessToken}`);
     return res.status(200).json(ResponseBody({ user, isSignup, accessToken }));
+  }
+
+  @Post('google')
+  async authByGoogle(@Body() googleUserDto: GoogleUserDto, @Res() res) {
+    const { user, accessToken, error, isSignup } =
+      await this.authService.authWithGoogle(googleUserDto);
+    if (error) {
+      if (error.code === 409) {
+        throw new HttpException(error.message, HttpStatus.CONFLICT);
+      }
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+    return res.status(200).json(ResponseBody({ user, accessToken, isSignup }));
   }
 
   @Get('me')

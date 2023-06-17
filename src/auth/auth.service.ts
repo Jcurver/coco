@@ -15,6 +15,7 @@ import { AppleUserDto } from 'src/user/dto/apple-user.dto';
 import { JwtPayload } from './jwt.strategy';
 import { UserEntity } from 'src/user/entities/user.entity';
 import { Repository } from 'typeorm';
+import { GoogleUserDto } from 'src/user/dto/google-user.dto';
 // import appleSignin from 'apple-signin-auth';
 
 @Injectable()
@@ -112,6 +113,46 @@ export class AuthService {
 
     if (!error) {
       // await this._issueSendbirdTokenIfNotExist(user);
+    }
+
+    return {
+      user,
+      ...token,
+      error,
+      isSignup,
+    };
+  }
+
+  async authWithGoogle(googleUserDto: GoogleUserDto) {
+    const { googleUserId, username } = googleUserDto;
+    if (!googleUserId) {
+      throw new HttpException('Invalid user info', HttpStatus.UNAUTHORIZED);
+    }
+
+    let user = await this.userService.findOne({
+      where: { googleUserId, username },
+    });
+    let error;
+    let token = { accessToken: '' };
+    let isSignup = false;
+    if (!user) {
+      isSignup = true;
+      try {
+        user = await this.userService.create(googleUserDto);
+        token = this._createAccessToken(user);
+      } catch (err: any) {
+        if (err.status === HttpStatus.CONFLICT) {
+          error = {
+            code: 409,
+            message: 'User already signed up with Email',
+          };
+        }
+      }
+    } else {
+      token = this._createAccessToken(user);
+    }
+
+    if (!error) {
     }
 
     return {

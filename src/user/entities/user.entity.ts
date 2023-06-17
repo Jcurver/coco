@@ -29,6 +29,15 @@ export class UserEntity extends BaseEntity {
   @Exclude()
   appleUserId: string;
 
+  @Column('varchar', {
+    name: 'googleUserId',
+    length: 45,
+    unique: true,
+    nullable: true,
+  })
+  @Exclude()
+  googleUserId: string;
+
   @Column('enum', {
     enum: LoginType,
     name: 'login_type',

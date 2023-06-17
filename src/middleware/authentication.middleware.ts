@@ -9,7 +9,7 @@ import { Request, Response, NextFunction } from 'express';
 import { invalid } from 'joi';
 import { verify } from 'jsonwebtoken';
 
-export const ignoreAuthenticationPaths = ['/auth/apple'];
+export const ignoreAuthenticationPaths = ['/auth/apple', '/auth/google'];
 
 @Injectable()
 export class AuthenticationMiddleware implements NestMiddleware {

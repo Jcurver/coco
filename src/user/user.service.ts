@@ -3,6 +3,7 @@ import { UserEntity } from './entities/user.entity';
 import { getManager } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserRepository } from './user.repository';
+import { LoginType } from 'src/common/constants';
 
 @Injectable()
 export class UserService {
@@ -15,7 +16,7 @@ export class UserService {
       // name: socialName,
       username,
       password,
-      // googleUserId,
+      googleUserId,
       appleUserId,
       loginType,
       // uuid,
@@ -27,16 +28,21 @@ export class UserService {
     //   const image = await this.s3Service.uploadFromUrl(userDto.profileImageUrl, name);
     //   userDto.profileImageUrl = image.Location;
     // }
+    let userFindQueryObject: any = { username };
+    if (googleUserId && loginType === LoginType.GOOGLE) {
+      userFindQueryObject = { googleUserId, username };
+    } else if (appleUserId && loginType === LoginType.APPLE) {
+      userFindQueryObject = { appleUserId, username };
+    }
 
     let newUser: UserEntity;
-    console.log('userDto', userDto);
 
     await getManager().transaction(
       'READ COMMITTED',
       async (transactionalEntityManager) => {
         // check if the user exists in the db
         const userInDb = await transactionalEntityManager.findOne(UserEntity, {
-          where: { username },
+          where: userFindQueryObject,
         });
         if (userInDb) {
           throw new HttpException(
@@ -48,7 +54,7 @@ export class UserService {
         const user = transactionalEntityManager.create(UserEntity, {
           username,
           password,
-          // googleUserId,
+          googleUserId,
           appleUserId,
           loginType,
           // profileImageUrl: userDto.profileImageUrl,
