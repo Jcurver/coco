@@ -8,6 +8,6 @@ export class UserController {
   constructor(private userService: UserService) {}
   @Get('test')
   async usertest() {
-    return ResponseBody('로그인 성공했습니다.');
+    return ResponseBody('로그인에 성공했습니다.');
   }
 }
