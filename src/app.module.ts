@@ -9,6 +9,7 @@ import {
   AuthenticationMiddleware,
   ignoreAuthenticationPaths,
 } from './middleware/authentication.middleware';
+import { S3Module } from './s3/S3.module';
 
 // const IS_DEV = process.env.NODE_ENV === 'development';
 @Module({
@@ -32,6 +33,7 @@ import {
     }),
     AuthModule,
     UserModule,
+    S3Module,
   ],
 })
 export class AppModule {
