@@ -4,10 +4,11 @@ import { Logger } from '@nestjs/common';
 import * as dotenv from 'dotenv';
 // import * as config from 'config';
 
+dotenv.config();
+
 async function bootstrap() {
   const logger = new Logger('bootstrap');
   const app = await NestFactory.create(AppModule);
-  dotenv.config();
 
   // const serverConfig = config.get('server');
 
@@ -15,6 +16,7 @@ async function bootstrap() {
   // const SERVER_PORT = 3000;
 
   await app.listen(SERVER_PORT);
+
   logger.log(`💡Application listening on port ${SERVER_PORT}`);
 }
 bootstrap();
