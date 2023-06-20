@@ -4,11 +4,13 @@ import { getManager } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UserRepository } from './user.repository';
 import { LoginType } from 'src/common/constants';
+import getRandomNickname from 'src/util/getRandomNickname';
 
 @Injectable()
 export class UserService {
   async findOne(options?: any): Promise<UserEntity> {
     const user = await UserEntity.findOne(options);
+    console.log('fineone', user);
     return user;
   }
   async create(userDto: CreateUserDto): Promise<UserEntity> {
@@ -53,6 +55,7 @@ export class UserService {
         // Create User
         const user = transactionalEntityManager.create(UserEntity, {
           username,
+          nickname: getRandomNickname(),
           password,
           googleUserId,
           appleUserId,
