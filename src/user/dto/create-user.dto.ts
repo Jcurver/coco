@@ -15,6 +15,9 @@ export class CreateUserDto {
   @IsEmail()
   username: string;
 
+  @IsEmpty()
+  nickname: string;
+
   @ValidateIf((o) => o.loginType === LoginType.GOOGLE)
   @IsEmpty()
   password?: string;

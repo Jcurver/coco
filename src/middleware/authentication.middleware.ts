@@ -22,6 +22,7 @@ export class AuthenticationMiddleware implements NestMiddleware {
 
     // 토큰을 가져와 확인합니다.
     const AccessToken = req.headers.authorization?.split(' ')[1];
+    console.log('AT', AccessToken);
 
     if (!AccessToken) {
       return res.status(401).json({ message: 'No token provided' });
